@@ -104,9 +104,44 @@
     .vbtn:not(.active){display:none;} .nta{border:none;}
     body{background:#fff;} table{border-color:#ccc;}
   }
+
+  #gate{position:fixed;inset:0;z-index:1000;background:var(--ground);display:flex;align-items:center;justify-content:center;padding:20px}
+  #gate .box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:34px 30px;max-width:370px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.18)}
+  #gate .lk{width:46px;height:46px;border-radius:12px;margin:0 auto 14px;display:grid;place-items:center;background:var(--brand-bg,rgba(31,95,190,.10));border:1px solid var(--brand-line,rgba(31,95,190,.25))}
+  #gate .lk svg{width:24px;height:24px;stroke:var(--brand);fill:none;stroke-width:1.8}
+  #gate h1{font-size:19px;margin:0 0 6px;color:var(--ink)}
+  #gate p{color:var(--soft);font-size:13px;margin:0 0 18px;line-height:1.5}
+  #gate input{width:100%;font-family:inherit;font-size:15px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);margin-bottom:10px;box-sizing:border-box}
+  #gate input:focus{outline:none;border-color:var(--brand)}
+  #gate button{width:100%;font-family:inherit;font-weight:600;font-size:15px;padding:12px;border:none;border-radius:10px;background:var(--brand);color:#fff;cursor:pointer}
+  #gate button:hover{filter:brightness(1.06)}
+  #gate .err{color:var(--ko);font-size:13px;min-height:18px;margin-top:8px}
+  body.locked{overflow:hidden}
 </style>
 </head>
 <body>
+<div id="gate"><div class="box">
+  <div class="lk"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>
+  <h1>Cahier de recette</h1>
+  <p>Accès réservé. Saisissez le mot de passe pour continuer.</p>
+  <input id="gpw" type="password" placeholder="Mot de passe" autocomplete="off">
+  <button id="gbtn" type="button">Accéder</button>
+  <div class="err" id="gerr"></div>
+</div></div>
+<script>
+(function(){
+  var HASH=3612570323;
+  function hh(s){var x=5381;for(var i=0;i<s.length;i++){x=((x*33)^s.charCodeAt(i))>>>0;}return x;}
+  var gate=document.getElementById('gate'),pw=document.getElementById('gpw'),btn=document.getElementById('gbtn'),err=document.getElementById('gerr');
+  function unlock(){gate.style.display='none';document.body.classList.remove('locked');}
+  try{if(sessionStorage.getItem('recette_auth')==='1'){unlock();return;}}catch(e){}
+  document.body.classList.add('locked');
+  function tryit(){if(hh(pw.value)===HASH){try{sessionStorage.setItem('recette_auth','1');}catch(e){}unlock();}else{err.textContent='Mot de passe incorrect.';pw.value='';pw.focus();}}
+  btn.addEventListener('click',tryit);
+  pw.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();tryit();}});
+  setTimeout(function(){pw.focus();},60);
+})();
+</script>
 <div class="bar">
   <div class="bar-in">
     <span class="prog" id="prog">0 / 0 testés</span>
