@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cahier de recette — Synapse Pharma</title>
+<style>
+  :root{
+    --ground:#f5f7f9; --panel:#ffffff; --ink:#16202b; --soft:#4a5765; --faint:#7d8a98;
+    --line:#e3e8ee; --line-soft:#eef2f6;
+    --brand:#1f5fbe; --brand-bg:#e9f0fb; --brand-line:#c6daf4;
+    --ok:#1f8a4c; --ok-bg:#e4f5eb; --ok-line:#bde6cd;
+    --ko:#c23b30; --ko-bg:#fbe9e7; --ko-line:#f2ccc7;
+    --amel:#a86414; --amel-bg:#f9efdd; --amel-line:#eed9b4;
+    --mono:ui-monospace,'Cascadia Code',Consolas,monospace;
+    --sans:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ground:#10151b; --panel:#171d25; --ink:#e6ecf2; --soft:#a3afbc; --faint:#76828f;
+      --line:#28313b; --line-soft:#20272f;
+      --brand:#6fa4ea; --brand-bg:#14243c; --brand-line:#254368;
+      --ok:#5bc885; --ok-bg:#123024; --ok-line:#1f4a35;
+      --ko:#e8897d; --ko-bg:#331a16; --ko-line:#552a23;
+      --amel:#e0a94e; --amel-bg:#332611; --amel-line:#54401b;
+    }
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--ground); color:var(--ink); font-family:var(--sans); line-height:1.55; margin:0; -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1080px; margin:0 auto; padding:0 18px 6rem;}
+  h1{font-size:1.9rem; font-weight:700; letter-spacing:-.02em; margin:0;}
+  h2{font-size:1.35rem; font-weight:700; letter-spacing:-.01em; margin:0;}
+  h3{font-size:1.05rem; font-weight:650; margin:0 0 2px;}
+  a{color:var(--brand); text-decoration:none;}
+  code,.mono{font-family:var(--mono); font-size:.85em;}
+  .header{padding:2.4rem 0 1.2rem;}
+  .kicker{font-family:var(--mono); font-size:.72rem; letter-spacing:.16em; text-transform:uppercase; color:var(--faint);}
+  .lead{color:var(--soft); font-size:1rem; margin:.5rem 0 0; max-width:72ch;}
+  .howto{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:1rem 1.2rem; margin:1.2rem 0; font-size:.92rem; color:var(--soft);}
+  .howto b{color:var(--ink);}
+  .whoami{display:flex; align-items:center; gap:.8rem; flex-wrap:wrap; margin:0 0 1.4rem;}
+  .whoami label{font-size:.9rem; color:var(--soft); display:flex; align-items:center; gap:.5rem; font-weight:600;}
+  .whoami input{font-family:inherit; font-size:.9rem; padding:.35em .6em; border-radius:8px; border:1px solid var(--line); background:var(--panel); color:var(--ink); min-width:220px;}
+  .whoami input:focus{outline:none; border-color:var(--brand);}
+  .whoami-hint{font-size:.82rem; color:var(--faint);}
+  .stamp{flex-basis:100%; margin-top:.4rem; font-size:.72rem; color:var(--faint); font-family:var(--mono);}
+  .stamp:empty{display:none;}
+  .pill{display:inline-block; font-size:.74rem; font-weight:600; padding:.12em .55em; border-radius:20px; border:1px solid;}
+  .pill.ok{color:var(--ok); background:var(--ok-bg); border-color:var(--ok-line);}
+  .pill.ko{color:var(--ko); background:var(--ko-bg); border-color:var(--ko-line);}
+  .pill.amel{color:var(--amel); background:var(--amel-bg); border-color:var(--amel-line);}
+
+  .bar{position:sticky; top:0; z-index:20; background:var(--ground); border-bottom:1px solid var(--line); padding:.6rem 0; margin-bottom:1.2rem;}
+  .bar-in{max-width:1080px; margin:0 auto; padding:0 18px; display:flex; flex-wrap:wrap; gap:.6rem 1rem; align-items:center;}
+  .prog{font-size:.85rem; color:var(--soft); font-variant-numeric:tabular-nums;}
+  .prog b{color:var(--ink);}
+  .prog .c-ok{color:var(--ok)} .prog .c-ko{color:var(--ko)} .prog .c-amel{color:var(--amel)}
+  .track{flex:1; min-width:120px; height:7px; border-radius:20px; background:var(--line); overflow:hidden;}
+  .track>i{display:block; height:100%; width:0; background:var(--brand); transition:width .25s ease;}
+  .btn{font-family:inherit; font-size:.8rem; padding:.32em .7em; border-radius:8px; border:1px solid var(--line); background:var(--panel); color:var(--ink); cursor:pointer;}
+  .btn:hover{border-color:var(--brand-line);}
+  .btn.active{background:var(--brand-bg); border-color:var(--brand-line); color:var(--brand); font-weight:600;}
+  .filters{display:flex; gap:.35rem; flex-wrap:wrap;}
+  .tools{display:flex; gap:.35rem; margin-left:auto; flex-wrap:wrap;}
+
+  .toc{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:1rem 1.2rem; margin-bottom:1.6rem;}
+  .toc h2{font-size:.8rem; font-family:var(--mono); letter-spacing:.13em; text-transform:uppercase; color:var(--faint); font-weight:600; margin-bottom:.7rem;}
+  .toc-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:.3rem 1rem;}
+  .toc-grid a{font-size:.9rem; padding:.15rem 0; display:flex; gap:.5rem;}
+  .toc-grid a span{font-family:var(--mono); font-size:.72rem; color:var(--faint); min-width:1.6rem;}
+
+  section{margin:2.4rem 0 0; scroll-margin-top:70px;}
+  .dom-head{display:flex; align-items:baseline; gap:.7rem; border-bottom:2px solid var(--line); padding-bottom:.5rem; margin-bottom:.4rem;}
+  .dom-head .num{font-family:var(--mono); font-size:.9rem; font-weight:700; color:var(--brand);}
+  .dom-intro{color:var(--soft); font-size:.92rem; margin:.2rem 0 1rem;}
+  .mod{margin:1.3rem 0;}
+  .moddesc{font-size:.9rem; color:var(--soft); margin:.15rem 0 .5rem;}
+  .moddesc b{color:var(--ink); font-weight:600;}
+
+  table{width:100%; border-collapse:collapse; font-size:.9rem; background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden;}
+  thead th{text-align:left; font-family:var(--mono); font-size:.66rem; letter-spacing:.09em; text-transform:uppercase; color:var(--faint); font-weight:600; padding:.55rem .7rem; background:var(--line-soft); border-bottom:1px solid var(--line);}
+  tbody td{padding:.6rem .7rem; border-bottom:1px solid var(--line-soft); vertical-align:top;}
+  tbody tr:last-child td{border-bottom:none;}
+  td.ref{font-family:var(--mono); font-weight:700; white-space:nowrap; color:var(--soft);}
+  th.c-ref,td.ref{width:3.2rem;} th.c-verdict{width:11rem;} th.c-note{width:13rem;} th.c-exp{width:15rem;}
+  tr.r-ok{background:var(--ok-bg);} tr.r-ko{background:var(--ko-bg);} tr.r-amel{background:var(--amel-bg);}
+  .obj{font-weight:600; margin-bottom:.3rem;}
+  ol.how{margin:.1rem 0 0; padding-left:1.15rem; color:var(--soft); font-size:.85rem;}
+  ol.how li{margin:.12rem 0;}
+  .vcell{display:flex; gap:.25rem; flex-wrap:wrap;}
+  .vbtn{font-family:inherit; font-size:.72rem; padding:.2em .5em; border-radius:7px; border:1px solid var(--line); background:var(--panel); color:var(--soft); cursor:pointer;}
+  .vbtn:hover{border-color:var(--brand-line);}
+  .vbtn.v-ok.active{background:var(--ok); border-color:var(--ok); color:#fff;}
+  .vbtn.v-ko.active{background:var(--ko); border-color:var(--ko); color:#fff;}
+  .vbtn.v-amel.active{background:var(--amel); border-color:var(--amel); color:#fff;}
+  .nta{width:100%; min-height:34px; font-family:inherit; font-size:.85rem; color:var(--ink); background:var(--panel); border:1px solid var(--line); border-radius:7px; padding:.3rem .45rem; resize:vertical;}
+  .nta:focus{outline:none; border-color:var(--brand);}
+
+  .foot{margin-top:3rem; padding-top:1.2rem; border-top:1px solid var(--line); color:var(--faint); font-size:.82rem;}
+  .to-top{position:fixed; right:16px; bottom:16px; z-index:30;}
+  @media print{
+    .bar,.toc,.to-top,.tools,.filters{display:none!important;}
+    .vbtn:not(.active){display:none;} .nta{border:none;}
+    body{background:#fff;} table{border-color:#ccc;}
+  }
+</style>
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <span class="prog" id="prog">0 / 0 testés</span>
+    <span class="track"><i id="trackfill"></i></span>
+    <div class="filters" id="filters">
+      <button class="btn active" data-f="all">Tous</button>
+      <button class="btn" data-f="todo">Non testés</button>
+      <button class="btn" data-f="ko">KO</button>
+      <button class="btn" data-f="amel">À améliorer</button>
+    </div>
+    <div class="tools">
+      <button class="btn" id="exp">Exporter</button>
+      <button class="btn" id="prt">Imprimer</button>
+      <button class="btn" id="rst">Réinitialiser</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="header">
+    <p class="kicker">Cahier de recette fonctionnelle</p>
+    <h1>Synapse Pharma — recette complète</h1>
+    <p class="lead">Guide de tests couvrant l'ensemble des modules. Chaque module indique ce qu'il fait ; chaque test donne l'objectif, la <b>procédure pas-à-pas</b> et le résultat attendu. Le testeur renseigne un verdict (<span class="pill ok">OK</span> <span class="pill ko">KO</span> <span class="pill amel">À améliorer</span>) et une note.</p>
+    <div class="howto">
+      <b>Mode d'emploi.</b> Connectez-vous avec vos propres identifiants, avec un rôle disposant des droits du module testé.
+      Suivez la procédure « Comment tester », comparez au résultat attendu, puis cliquez <b>OK / KO / À améliorer</b> et ajoutez une note.
+      La saisie et la date sont <b>enregistrées automatiquement dans ce navigateur</b> (aucune donnée envoyée). Filtrez par
+      <b>non testés / KO / à améliorer</b>, puis <b>Exporter</b> (rapport JSON) ou <b>Imprimer</b> (PDF).
+    </div>
+    <div class="whoami">
+      <label>Testeur <input id="tester" type="text" placeholder="Votre nom" autocomplete="name"></label>
+      <span class="whoami-hint">La date du test est enregistrée automatiquement à chaque verdict.</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <h2>Sommaire</h2>
+    <div class="toc-grid">
+      <a href="#d-acces"><span>A</span> Accès &amp; sécurité</a>
+      <a href="#d-dashboard"><span>B</span> Tableau de bord</a>
+      <a href="#d-pos"><span>C</span> Point de vente (POS)</a>
+      <a href="#d-precommande"><span>D</span> Précommande + caisse</a>
+      <a href="#d-ventes"><span>E</span> Historique des ventes</a>
+      <a href="#d-retours"><span>F</span> Retours &amp; avoirs clients</a>
+      <a href="#d-catalogue"><span>G</span> Catalogue &amp; médicaments</a>
+      <a href="#d-stock"><span>H</span> Stock &amp; lots</a>
+      <a href="#d-inventaire"><span>I</span> Inventaire</a>
+      <a href="#d-clients"><span>J</span> Clients &amp; CRM</a>
+      <a href="#d-achats"><span>K</span> Achats &amp; fournisseurs</a>
+      <a href="#d-compta"><span>L</span> Comptabilité</a>
+      <a href="#d-rh"><span>M</span> RH &amp; Paie</a>
+      <a href="#d-rapports"><span>N</span> Rapports</a>
+      <a href="#d-ia"><span>O</span> IA &amp; OCR</a>
+      <a href="#d-alertes"><span>P</span> Alertes &amp; notifications</a>
+      <a href="#d-parametres"><span>Q</span> Paramètres</a>
+      <a href="#d-abonnement"><span>R</span> Abonnement</a>
+      <a href="#d-plateforme"><span>S</span> Administration plateforme</a>
+    </div>
+  </nav>
+
+  <!-- A -->
+  <section id="d-acces">
+    <div class="dom-head"><span class="num">A</span><h2>Accès &amp; sécurité</h2></div>
+    <p class="dom-intro">Authentification, gestion des utilisateurs, rôles/permissions et multi-sites.</p>
+    <div class="mod"><h3>Connexion &amp; compte</h3><p class="moddesc"><b>Ce que fait le module :</b> authentifie l'utilisateur (identifiant pharmacie + email + mot de passe) et gère son compte.</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="A1"><td class="ref">A1</td><td><div class="obj">Connexion avec identifiants valides.</div><ol class="how"><li>Ouvrir l'application.</li><li>Saisir le code/identifiant pharmacie, l'email et le mot de passe.</li><li>Cliquer « Se connecter ».</li></ol></td><td>Accès au tableau de bord ; session ouverte.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="A2"><td class="ref">A2</td><td><div class="obj">Refus d'un mauvais mot de passe.</div><ol class="how"><li>Saisir un mot de passe erroné.</li><li>Cliquer « Se connecter ».</li></ol></td><td>Message d'erreur ; aucun accès.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="A3"><td class="ref">A3</td><td><div class="obj">Déconnexion.</div><ol class="how"><li>Menu du compte (en haut à droite) → « Déconnexion ».</li></ol></td><td>Retour à l'écran de connexion ; session invalidée.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="A4"><td class="ref">A4</td><td><div class="obj">Changement de mot de passe.</div><ol class="how"><li>Menu du compte → « Mot de passe ».</li><li>Saisir l'ancien et le nouveau mot de passe → Enregistrer.</li><li>Se reconnecter avec le nouveau.</li></ol></td><td>Nouveau mot de passe accepté ; changement forcé honoré si imposé.</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+
+    <div class="mod"><h3>Utilisateurs</h3><p class="moddesc"><b>Ce que fait le module :</b> gestion des comptes du personnel et de leurs rôles.</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="A5"><td class="ref">A5</td><td><div class="obj">Créer un utilisateur et lui assigner un rôle.</div><ol class="how"><li>Menu « Utilisateurs » → « Nouvel utilisateur ».</li><li>Renseigner nom/email/mot de passe → choisir un ou plusieurs rôles → Enregistrer.</li><li>Se connecter avec ce compte.</li></ol></td><td>L'utilisateur accède aux menus autorisés par son rôle.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="A6"><td class="ref">A6</td><td><div class="obj">Désactiver un utilisateur.</div><ol class="how"><li>Utilisateurs → ouvrir un compte → le désactiver.</li><li>Tenter de se connecter avec ce compte.</li></ol></td><td>Connexion refusée pour ce compte.</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+
+    <div class="mod"><h3>Rôles &amp; permissions</h3><p class="moddesc"><b>Ce que fait le module :</b> définit finement ce que chaque profil peut voir et faire.</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="A7"><td class="ref">A7</td><td><div class="obj">Consulter les permissions d'un rôle.</div><ol class="how"><li>Menu « Rôles &amp; permissions ».</li><li>Sur un rôle → « Voir » (ou « Modifier »).</li><li>Observer les permissions cochées, groupées par module.</li></ol></td><td>Permissions du rôle lisibles et cohérentes.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="A8"><td class="ref">A8</td><td><div class="obj">Modifier un rôle système.</div><ol class="how"><li>Rôles &amp; permissions → « Modifier » (ex. Préparateur).</li><li>Cocher une permission (ex. « Gérer les clients ») → Enregistrer.</li><li>L'utilisateur concerné se reconnecte.</li></ol></td><td>Droit effectif ; l'Administrateur reste non modifiable ; rôles système non supprimables.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="A9"><td class="ref">A9</td><td><div class="obj">Créer un rôle personnalisé et l'attribuer.</div><ol class="how"><li>Rôles &amp; permissions → « Nouveau rôle » → cocher les permissions → Enregistrer.</li><li>Utilisateurs → assigner ce rôle à un compte.</li></ol></td><td>Le rôle applique exactement les permissions cochées.</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+
+    <div class="mod"><h3>Multi-sites</h3><p class="moddesc"><b>Ce que fait le module :</b> gère plusieurs points de vente / dépôts sous une même pharmacie.</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="A10"><td class="ref">A10</td><td><div class="obj">Filtrer par site.</div><ol class="how"><li>Sélecteur « Tous les sites » (en haut) → choisir un site précis.</li><li>Ouvrir Stock, Historique des ventes, Tableau de bord.</li></ol></td><td>Stock, ventes et indicateurs filtrés par le site choisi.</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+  </section>
+
+  <!-- B -->
+  <section id="d-dashboard">
+    <div class="dom-head"><span class="num">B</span><h2>Tableau de bord</h2></div>
+    <p class="dom-intro">Vue d'ensemble de l'activité (indicateurs, graphiques, période).</p>
+    <div class="mod"><h3>Indicateurs &amp; période</h3><p class="moddesc"><b>Ce que fait le module :</b> synthétise CA, ventes, stock, trésorerie, créances/dettes et alertes.</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="B1"><td class="ref">B1</td><td><div class="obj">Vérifier les KPIs.</div><ol class="how"><li>Menu « Tableau de bord ».</li><li>Lire CA du jour, nb de ventes, valeur du stock, créances, dettes.</li><li>Comparer à des données saisies connues.</li></ol></td><td>Valeurs cohérentes avec les données.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="B2"><td class="ref">B2</td><td><div class="obj">Changer la période.</div><ol class="how"><li>Tableau de bord → sélecteur de période (Aujourd'hui / 7j / 30j / Ce mois / Personnalisé).</li></ol></td><td>Les indicateurs se recalculent sur la période.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="B3"><td class="ref">B3</td><td><div class="obj">Personnaliser les widgets.</div><ol class="how"><li>Tableau de bord → « Personnaliser ».</li><li>Masquer / réordonner un widget → recharger la page.</li></ol></td><td>Disposition mémorisée par utilisateur après rechargement.</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+  </section>
+
+  <!-- C -->
+  <section id="d-pos">
+    <div class="dom-head"><span class="num">C</span><h2>Point de vente (POS) — encaissement direct</h2></div>
+    <p class="dom-intro">Encaissement au comptoir : produits, paiements, remises, fidélité, assurance, crédit, scan.</p>
+    <div class="mod"><h3>Vente &amp; paiements</h3><p class="moddesc"><b>Ce que fait le module :</b> enregistre une vente, déstocke en FEFO et génère l'écriture comptable.</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="C1"><td class="ref">C1</td><td><div class="obj">Vente simple en espèces.</div><ol class="how"><li>Menu « Point de vente » → ajouter des produits au panier.</li><li>Moyen de paiement = Espèces → « Encaisser ».</li></ol></td><td>Ticket <code>TCK-…</code> ; stock déstocké (FEFO) ; écriture de vente équilibrée.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="C2"><td class="ref">C2</td><td><div class="obj">Autres moyens de paiement.</div><ol class="how"><li>POS → panier → moyen = Orange Money / Mobile Money / Carte / Virement.</li><li>Encaisser.</li></ol></td><td>Paiement enregistré au bon compte de trésorerie.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="C3"><td class="ref">C3</td><td><div class="obj">Remise commerciale.</div><ol class="how"><li>POS → panier → saisir « Remise (%) ».</li><li>Encaisser.</li></ol></td><td>Total réduit ; remise tracée en comptabilité.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="C4"><td class="ref">C4</td><td><div class="obj">Fidélité (gain + échange).</div><ol class="how"><li>POS → associer un client → encaisser (le client gagne des points).</li><li>Nouvelle vente → saisir des points à utiliser → encaisser.</li></ol></td><td>Points crédités/débités ; remise fidélité appliquée (plafonnée au solde).</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="C5"><td class="ref">C5</td><td><div class="obj">Tiers payant (assurance).</div><ol class="how"><li>POS → associer un patient ayant une police active.</li><li>Ajouter des produits → vérifier la part assurance affichée → encaisser la part patient.</li></ol></td><td>Part assureur calculée ; reste à charge patient correct.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="C6"><td class="ref">C6</td><td><div class="obj">Vente à crédit + plafond.</div><ol class="how"><li>POS → client ayant un plafond → moyen = Crédit → montant ≤ plafond → Encaisser.</li><li>Refaire une vente qui dépasse le plafond.</li></ol></td><td>Crédit accepté sous plafond ; bloqué au-delà ; encours mis à jour.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="C7"><td class="ref">C7</td><td><div class="obj">Régler le crédit d'un client.</div><ol class="how"><li>POS (ou fiche client) → action de règlement du crédit.</li><li>Choisir un moyen (hors crédit) → valider.</li></ol></td><td>Encours diminué ; écriture de règlement générée.</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+    <div class="mod"><h3>Scan, ordonnance &amp; impression</h3><p class="moddesc"><b>Ce que fait le module :</b> accélère la saisie (codes-barres, OCR ordonnance) et imprime le ticket.</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="C8"><td class="ref">C8</td><td><div class="obj">Ajout par scan code-barres.</div><ol class="how"><li>POS → champ de scan → scanner (ou saisir) un code-barres.</li><li>Tester un code inconnu.</li></ol></td><td>Produit ajouté avec la bonne quantité ; code inconnu signalé.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="C9"><td class="ref">C9</td><td><div class="obj">Ordonnance par OCR.</div><ol class="how"><li>POS → « Scanner une ordonnance » → importer une photo.</li><li>Vérifier le rapprochement des médicaments.</li></ol></td><td>Médicaments reconnus ajoutés ; non-trouvés listés.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="C10"><td class="ref">C10</td><td><div class="obj">Alerte produit périmé.</div><ol class="how"><li>POS → ajouter un produit dont le lot le plus proche est périmé.</li></ol></td><td>Confirmation demandée avant l'ajout.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="C11"><td class="ref">C11</td><td><div class="obj">Impression du ticket.</div><ol class="how"><li>Après une vente → « Imprimer le ticket » (A4 et/ou thermique 80 mm).</li></ol></td><td>Ticket conforme (identité, lignes, total, TVA).</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+  </section>
+
+  <!-- D -->
+  <section id="d-precommande">
+    <div class="dom-head"><span class="num">D</span><h2>Précommande + caisse séparée</h2></div>
+    <p class="dom-intro">Mode POS 2 : un vendeur prépare la commande (numéro remis), l'encaissement se fait à une caisse dédiée.</p>
+    <div class="mod"><h3>Cycle précommande</h3><p class="moddesc"><b>Ce que fait le module :</b> sépare la création (préparateur) de l'encaissement (caissier).</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="D1"><td class="ref">D1</td><td><div class="obj">Activer le mode précommande.</div><ol class="how"><li>Menu « Paramètres » → « Mode de fonctionnement du POS ».</li><li>Choisir « Précommande + caisse séparée » → Enregistrer.</li></ol></td><td>Menus « Caisse » et « Suivi précommandes » apparaissent ; le POS affiche « Valider la précommande ».</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="D2"><td class="ref">D2</td><td><div class="obj">Créer une précommande + imprimer le n°.</div><ol class="how"><li>Point de vente (rôle Préparateur) → associer un client → ajouter des produits.</li><li>« Valider la précommande » → « Imprimer le numéro ».</li></ol></td><td>Numéro court remis/imprimé ; stock réservé ; visible dans « Suivi précommandes ».</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="D3"><td class="ref">D3</td><td><div class="obj">Encaisser à la caisse.</div><ol class="how"><li>Menu « Caisse » (rôle Caissier) → saisir le numéro (ou l'ouvrir depuis la liste).</li><li>Vérifier le nom du client → choisir le paiement → « Encaisser ».</li></ol></td><td>Nom du client visible ; ticket généré ; précommande « Payée ».</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="D4"><td class="ref">D4</td><td><div class="obj">Séparation des tâches.</div><ol class="how"><li>Se connecter en Préparateur : vérifier l'absence du menu Caisse.</li><li>Se connecter en Caissier : vérifier qu'il ne peut pas créer de précommande (si configuré strict).</li></ol></td><td>Rôles cloisonnés selon la configuration.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="D5"><td class="ref">D5</td><td><div class="obj">Annulation / expiration.</div><ol class="how"><li>Caisse → ouvrir une précommande → « Annuler la commande » (ou attendre l'expiration).</li></ol></td><td>Statut Annulée / Expirée ; stock réservé libéré.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="D6"><td class="ref">D6</td><td><div class="obj">Réversibilité du mode.</div><ol class="how"><li>Paramètres → repasser en « Encaissement direct ».</li></ol></td><td>Bascule immédiate, sans perte de données.</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+  </section>
+
+  <!-- E -->
+  <section id="d-ventes">
+    <div class="dom-head"><span class="num">E</span><h2>Historique des ventes</h2></div>
+    <p class="dom-intro">Consultation, recherche et documents des ventes réalisées.</p>
+    <div class="mod"><h3>Consultation &amp; documents</h3><p class="moddesc"><b>Ce que fait le module :</b> liste les ventes avec filtres et génère tickets/factures.</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="E1"><td class="ref">E1</td><td><div class="obj">Filtres &amp; export.</div><ol class="how"><li>Menu « Historique des ventes » → filtrer par caissier / période.</li><li>Cliquer « Exporter Excel ».</li></ol></td><td>Liste filtrée cohérente ; fichier Excel téléchargé.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="E2"><td class="ref">E2</td><td><div class="obj">Rééditer les documents.</div><ol class="how"><li>Historique → sur une vente → « Ticket » puis « Facture A4 ».</li></ol></td><td>Documents corrects (montants, TVA, client).</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+  </section>
+
+  <!-- F -->
+  <section id="d-retours">
+    <div class="dom-head"><span class="num">F</span><h2>Retours &amp; avoirs clients</h2></div>
+    <p class="dom-intro">Traitement des retours (physique + financier) et gestion des avoirs clients (compte 419).</p>
+    <div class="mod"><h3>Retours clients</h3><p class="moddesc"><b>Ce que fait le module :</b> retour d'articles vendus, réintégration stock, remboursement ou avoir.</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="F1"><td class="ref">F1</td><td><div class="obj">Retour avec remboursement.</div><ol class="how"><li>Historique des ventes → une vente → « Retour ».</li><li>Saisir les quantités → Traitement financier = Remboursement (espèces) → Valider.</li></ol></td><td><code>RET-C-…</code> ; stock réintégré ; écriture de remboursement.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="F2"><td class="ref">F2</td><td><div class="obj">Choix du traitement physique.</div><ol class="how"><li>Dans le dialogue de retour → Traitement physique = Réintégrer / Quarantaine / Destruction / Retour fournisseur.</li></ol></td><td>Le stock est traité selon le choix (jamais automatique).</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="F3"><td class="ref">F3</td><td><div class="obj">Émission d'un avoir client.</div><ol class="how"><li>Retour d'une vente <b>ayant un client</b> → Traitement financier = « Avoir client » → Valider.</li><li>Menu « Avoirs clients » → vérifier l'avoir.</li></ol></td><td>Avoir <code>AV-C-…</code> Disponible ; écriture crédit <code>419</code>.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="F4"><td class="ref">F4</td><td><div class="obj">Avoir impossible sans client.</div><ol class="how"><li>Retour d'une vente <b>sans client</b> → observer le champ « Traitement financier ».</li></ol></td><td>Option « Avoir client » indisponible ; verrouillé sur Remboursement (message).</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+    <div class="mod"><h3>Avoirs clients</h3><p class="moddesc"><b>Ce que fait le module :</b> solde d'avoir réutilisable au comptoir, avec traçabilité et annulation.</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="F5"><td class="ref">F5</td><td><div class="obj">Utiliser un avoir au POS.</div><ol class="how"><li>Point de vente → associer le <b>même client</b> → ajouter un produit.</li><li>Champ « Avoir client » → « Max » → Encaisser.</li></ol></td><td>Imputation « Avoir imputé −… » ; solde décrémenté ; débit <code>419</code>.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="F6"><td class="ref">F6</td><td><div class="obj">Annuler un avoir non entamé.</div><ol class="how"><li>Menu « Avoirs clients » (rôle Comptable/Admin) → sur un avoir non entamé → « Annuler » → confirmer.</li></ol></td><td>Statut Annulé ; écriture <code>419</code>/<code>771</code>.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="F7"><td class="ref">F7</td><td><div class="obj">Tableau de bord des retours.</div><ol class="how"><li>Menu « Retours clients » → observer les statistiques par motif et la période.</li></ol></td><td>Statistiques cohérentes ; retours du jour inclus.</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+  </section>
+
+  <!-- G -->
+  <section id="d-catalogue">
+    <div class="dom-head"><span class="num">G</span><h2>Catalogue &amp; médicaments</h2></div>
+    <p class="dom-intro">Référentiel produits : identification, tarification, conditionnements, catalogue maître.</p>
+    <div class="mod"><h3>Médicaments</h3><p class="moddesc"><b>Ce que fait le module :</b> fiche produit (DCI, forme, dosage, prix, TVA, seuils, statut réglementaire).</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="G1"><td class="ref">G1</td><td><div class="obj">Créer / modifier un médicament.</div><ol class="how"><li>Menu « Produits » → « Nouveau » (ou ouvrir un produit).</li><li>Renseigner DCI, forme, dosage, prix, TVA, seuils → Enregistrer.</li></ol></td><td>Fiche enregistrée ; code produit généré ; produit visible au POS.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="G2"><td class="ref">G2</td><td><div class="obj">Tarification.</div><ol class="how"><li>Produits → un produit → saisir le prix de cession.</li><li>Vérifier le prix public (= cession × coefficient) et le respect du prix plafond.</li></ol></td><td>Prix calculés correctement ; plafond respecté.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="G3"><td class="ref">G3</td><td><div class="obj">Cloner le catalogue maître.</div><ol class="how"><li>Produits → importer/cloner depuis le catalogue maître (référentiel central).</li></ol></td><td>Produits pré-remplis dans le catalogue de la pharmacie.</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+    <div class="mod"><h3>Codes-barres</h3><p class="moddesc"><b>Ce que fait le module :</b> plusieurs codes par médicament (un par conditionnement).</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="G4"><td class="ref">G4</td><td><div class="obj">Multi-codes par produit.</div><ol class="how"><li>Menu « Codes-barres » → un produit → ajouter plusieurs codes (conditionnements).</li><li>Au POS, scanner chaque code.</li></ol></td><td>Chaque code résout le bon produit/conditionnement.</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+  </section>
+
+  <!-- H -->
+  <section id="d-stock">
+    <div class="dom-head"><span class="num">H</span><h2>Stock &amp; lots</h2></div>
+    <p class="dom-intro">Gestion des lots (FEFO), mouvements, emplacements et réapprovisionnement interne.</p>
+    <div class="mod"><h3>Lots, mouvements &amp; emplacements</h3><p class="moddesc"><b>Ce que fait le module :</b> suit les quantités par lot/emplacement et trace chaque mouvement.</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="H1"><td class="ref">H1</td><td><div class="obj">Déstockage FEFO.</div><ol class="how"><li>Avoir un produit avec 2 lots (péremptions différentes).</li><li>Vendre ce produit au POS → « Stock &amp; lots » → observer quel lot a diminué.</li></ol></td><td>Le lot le plus proche de la péremption est consommé en premier.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="H2"><td class="ref">H2</td><td><div class="obj">Historique des mouvements.</div><ol class="how"><li>« Stock &amp; lots » → un produit → consulter les mouvements (entrée/sortie/ajustement/transfert).</li></ol></td><td>Mouvements tracés avec motif et référence.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="H3"><td class="ref">H3</td><td><div class="obj">Emplacements.</div><ol class="how"><li>Menu « Emplacements » → créer rayon / réserve / entrepôt.</li><li>« Stock &amp; lots » → vérifier le stock par emplacement.</li></ol></td><td>Stock ventilé par emplacement.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="H4"><td class="ref">H4</td><td><div class="obj">Réapprovisionnement interne.</div><ol class="how"><li>Menu « Réapprovisionnement » → transfert réserve → rayon → Valider.</li></ol></td><td>Transfert effectué ; permission de validation requise.</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+  </section>
+
+  <!-- I -->
+  <section id="d-inventaire">
+    <div class="dom-head"><span class="num">I</span><h2>Inventaire</h2></div>
+    <p class="dom-intro">Comptage physique, inventaire aveugle (anti-fraude) et ajustement du stock.</p>
+    <div class="mod"><h3>Comptage &amp; validation</h3><p class="moddesc"><b>Ce que fait le module :</b> saisie des quantités comptées, calcul des écarts, ajustement.</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="I1"><td class="ref">I1</td><td><div class="obj">Réaliser un comptage.</div><ol class="how"><li>Menu « Inventaire » → nouvel inventaire.</li><li>Saisir les quantités comptées (mode aveugle si activé : stock théorique masqué).</li></ol></td><td>Comptage saisi ; théorique caché selon le réglage.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="I2"><td class="ref">I2</td><td><div class="obj">Valider l'inventaire.</div><ol class="how"><li>Inventaire → « Valider » (permission requise).</li><li>Vérifier les écarts et l'ajustement du stock.</li></ol></td><td>Écarts calculés ; stock ajusté ; mouvements d'inventaire créés.</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+  </section>
+
+  <!-- J -->
+  <section id="d-clients">
+    <div class="dom-head"><span class="num">J</span><h2>Clients &amp; CRM</h2></div>
+    <p class="dom-intro">Fiches clients/patients, fidélité, assurances (tiers payant) et ordonnances.</p>
+    <div class="mod"><h3>Clients &amp; fidélité</h3><p class="moddesc"><b>Ce que fait le module :</b> fiche client (identité, historique, fidélité, crédit, assurance).</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="J1"><td class="ref">J1</td><td><div class="obj">Créer / modifier un client.</div><ol class="how"><li>Menu « Clients » → « Nouveau » (ou ouvrir une fiche) → renseigner → Enregistrer.</li></ol></td><td>Fiche enregistrée ; client sélectionnable au POS.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="J2"><td class="ref">J2</td><td><div class="obj">Fiche 360°.</div><ol class="how"><li>Clients → ouvrir une fiche → parcourir achats, points de fidélité, crédit, assurance.</li></ol></td><td>Données agrégées correctes.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="J3"><td class="ref">J3</td><td><div class="obj">Paliers de fidélité.</div><ol class="how"><li>Menu « CRM &amp; Fidélité » → configurer les paliers.</li><li>Réordonner par glisser-déposer ; définir la valeur du point → Enregistrer.</li></ol></td><td>Paliers enregistrés dans l'ordre ; libellé et montant liés.</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+    <div class="mod"><h3>Assurances &amp; ordonnances</h3><p class="moddesc"><b>Ce que fait le module :</b> tiers payant (assureurs, polices) et suivi des ordonnances.</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="J4"><td class="ref">J4</td><td><div class="obj">Assureur &amp; police.</div><ol class="how"><li>Menu « Assurances » → créer un assureur (taux, périmètre).</li><li>Sur une fiche client → rattacher une police (n° d'assuré, taux, plafond).</li></ol></td><td>Police active ; part assureur appliquée au POS.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="J5"><td class="ref">J5</td><td><div class="obj">Ordonnances.</div><ol class="how"><li>Menu « Ordonnances » → enregistrer puis délivrer une ordonnance.</li></ol></td><td>Ordonnance tracée ; médicaments délivrés.</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+  </section>
+
+  <!-- K -->
+  <section id="d-achats">
+    <div class="dom-head"><span class="num">K</span><h2>Achats &amp; fournisseurs</h2></div>
+    <p class="dom-intro">Cycle achat complet : fournisseurs, commandes, réceptions, factures, règlements, retours, avoirs, rapprochement.</p>
+    <div class="mod"><h3>Fournisseurs &amp; commandes</h3><p class="moddesc"><b>Ce que fait le module :</b> référentiel fournisseurs et cycle de commande (demande → validée → commandée).</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="K1"><td class="ref">K1</td><td><div class="obj">Fournisseur &amp; fiche 360°.</div><ol class="how"><li>Menu « Fournisseurs » → « Nouveau » → Enregistrer.</li><li>Ouvrir la fiche du fournisseur (commandes, réceptions, factures, retours, dette).</li></ol></td><td>Fiche complète et cohérente.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="K2"><td class="ref">K2</td><td><div class="obj">Créer une commande.</div><ol class="how"><li>Menu « Commandes » → « Nouvelle » → ajouter des lignes → « Valider ».</li><li>Puis « Commander » (envoi au fournisseur).</li></ol></td><td>Statuts enchaînés ; commande prête à réceptionner.</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+    <div class="mod"><h3>Réceptions, factures &amp; règlements</h3><p class="moddesc"><b>Ce que fait le module :</b> entrée en stock (lot/péremption), facturation fournisseur et paiements.</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="K3"><td class="ref">K3</td><td><div class="obj">Réceptionner une commande.</div><ol class="how"><li>Menu « Réceptions » → section « À réceptionner » → « Réceptionner ».</li><li>Saisir n° de lot, péremption et quantités → « Valider la réception ».</li></ol></td><td>Lot créé (rattaché au fournisseur) ; stock à jour ; réception dans l'historique.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="K4"><td class="ref">K4</td><td><div class="obj">Facture fournisseur.</div><ol class="how"><li>Sur la commande → « Enregistrer la facture » (n°, date, échéance).</li></ol></td><td>Facture Impayée avec solde.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="K5"><td class="ref">K5</td><td><div class="obj">Règlement fournisseur.</div><ol class="how"><li>Menu « Factures fournisseurs » → « Payer » (total ou partiel).</li><li>Menu « Règlements » → vérifier le décaissement.</li></ol></td><td>Statut recalculé (Partiellement payée / Soldée) ; règlement listé.</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+    <div class="mod"><h3>Retours &amp; avoirs fournisseurs</h3><p class="moddesc"><b>Ce que fait le module :</b> retour de lots au fournisseur et avoir imputable sur facture (compte 4098).</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="K6"><td class="ref">K6</td><td><div class="obj">Retour fournisseur + avoir.</div><ol class="how"><li>Menu « Retours fournisseurs » → « Nouveau retour ».</li><li>Saisir une quantité sur un lot du fournisseur → « Avoir fournisseur attendu » activé → Valider.</li></ol></td><td><code>RET-F-…</code> ; avoir <code>AV-F-…</code> Disponible ; écriture débit <code>4098</code>.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="K7"><td class="ref">K7</td><td><div class="obj">Imputer l'avoir sur une facture.</div><ol class="how"><li>Menu « Factures fournisseurs » → sur une facture impayée du fournisseur → « Payer ».</li><li>Bloc « Avoirs disponibles » → « Imputer ».</li></ol></td><td>Solde facture réduit sans trésorerie ; écriture <code>401</code>/<code>4098</code>.</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+    <div class="mod"><h3>Pilotage achats</h3><p class="moddesc"><b>Ce que fait le module :</b> tableau de bord, rapprochement 3 voies et imports fournisseurs.</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="K8"><td class="ref">K8</td><td><div class="obj">Tableau de bord Achats.</div><ol class="how"><li>Menu « Tableau de bord » (section Achats) → lire dû/échu/à facturer/avoirs/top fournisseurs.</li><li>Cliquer une carte KPI.</li></ol></td><td>KPIs cohérents ; navigation vers la vue concernée.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="K9"><td class="ref">K9</td><td><div class="obj">Rapprochement Commandé/Reçu/Facturé.</div><ol class="how"><li>Menu « Rapprochement » → parcourir les commandes ; utiliser les filtres (reçu à facturer, avec écart).</li></ol></td><td>Écarts (reçu non facturé, sur-facturation) correctement signalés.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="K10"><td class="ref">K10</td><td><div class="obj">Import fournisseur.</div><ol class="how"><li>Menu « Imports fournisseurs » → charger un fichier → mapper les colonnes → importer.</li></ol></td><td>Lignes importées ; réception attendue générée.</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+  </section>
+
+  <!-- L -->
+  <section id="d-compta">
+    <div class="dom-head"><span class="num">L</span><h2>Comptabilité</h2></div>
+    <p class="dom-intro">Comptabilité en partie double (SYSCOHADA) : écritures automatiques, journaux et états financiers.</p>
+    <div class="mod"><h3>Écritures &amp; états</h3><p class="moddesc"><b>Ce que fait le module :</b> génère les écritures des opérations et produit les états.</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="L1"><td class="ref">L1</td><td><div class="obj">Plan comptable &amp; journaux.</div><ol class="how"><li>Menu « Comptabilité » → « Plan comptable » et « Journaux ».</li><li>Provisionner si nécessaire.</li></ol></td><td>Comptes et journaux SYSCOHADA présents.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="L2"><td class="ref">L2</td><td><div class="obj">Écritures automatiques.</div><ol class="how"><li>Faire une vente (ou un achat).</li><li>Comptabilité → « Écritures » → ouvrir l'écriture générée.</li></ol></td><td>Écriture équilibrée (Σdébit = Σcrédit), rattachée à la source.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="L3"><td class="ref">L3</td><td><div class="obj">États financiers.</div><ol class="how"><li>Comptabilité → Grand livre, Balance, Compte de résultat, Bilan.</li></ol></td><td>États cohérents et équilibrés.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="L4"><td class="ref">L4</td><td><div class="obj">TVA.</div><ol class="how"><li>Comptabilité → « TVA » → choisir la période.</li></ol></td><td>TVA collectée / récupérable correctes.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="L5"><td class="ref">L5</td><td><div class="obj">Écriture manuelle (OD).</div><ol class="how"><li>Comptabilité → « Nouvelle écriture » → saisir des lignes déséquilibrées (test), puis équilibrées.</li></ol></td><td>Refus si déséquilibrée ; acceptée si équilibrée.</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+  </section>
+
+  <!-- M -->
+  <section id="d-rh">
+    <div class="dom-head"><span class="num">M</span><h2>RH &amp; Paie</h2></div>
+    <p class="dom-intro">Personnel et bulletins de paie (CNSS, impôt sur salaire).</p>
+    <div class="mod"><h3>Employés &amp; bulletins</h3><p class="moddesc"><b>Ce que fait le module :</b> dossiers employés et génération des bulletins.</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="M1"><td class="ref">M1</td><td><div class="obj">Créer un employé.</div><ol class="how"><li>Menu « RH &amp; Paie » → « Employés » → « Nouveau » → contrat, rémunération, CNSS → Enregistrer.</li></ol></td><td>Dossier employé enregistré.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="M2"><td class="ref">M2</td><td><div class="obj">Générer un bulletin de paie.</div><ol class="how"><li>RH &amp; Paie → générer un bulletin pour une période.</li><li>Vérifier brut/CNSS/RTS/net → marquer payé.</li></ol></td><td>Montants calculés ; statut mis à jour ; écriture de paie générée.</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+  </section>
+
+  <!-- N -->
+  <section id="d-rapports">
+    <div class="dom-head"><span class="num">N</span><h2>Rapports &amp; reporting</h2></div>
+    <p class="dom-intro">Analyses commerciales et financières par période / site.</p>
+    <div class="mod"><h3>Rapports</h3><p class="moddesc"><b>Ce que fait le module :</b> synthèses ventes, marges, top produits, etc.</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="N1"><td class="ref">N1</td><td><div class="obj">Générer un rapport.</div><ol class="how"><li>Menu « Reporting » → choisir un rapport (ventes / marges / top produits) + période/site → générer/exporter.</li></ol></td><td>Chiffres cohérents ; export possible.</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+  </section>
+
+  <!-- O -->
+  <section id="d-ia">
+    <div class="dom-head"><span class="num">O</span><h2>IA &amp; OCR</h2></div>
+    <p class="dom-intro">Assistant IA, prédictions et reconnaissance de documents (add-ons).</p>
+    <div class="mod"><h3>Assistant, prédictions, OCR</h3><p class="moddesc"><b>Ce que fait le module :</b> aide à la décision et automatisation de la saisie (selon la formule).</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="O1"><td class="ref">O1</td><td><div class="obj">Assistant IA.</div><ol class="how"><li>Menu « Assistant IA » → poser une question métier → envoyer.</li></ol></td><td>Réponse pertinente ; consommation plafonnée selon la formule.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="O2"><td class="ref">O2</td><td><div class="obj">Prédictions IA.</div><ol class="how"><li>Consulter les prévisions (ventes / réappro) dans le module IA / tableau de bord.</li></ol></td><td>Prévisions affichées et exploitables.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="O3"><td class="ref">O3</td><td><div class="obj">OCR d'un document.</div><ol class="how"><li>Scanner une ordonnance ou une facture (bouton « Scanner »).</li></ol></td><td>Texte reconnu et rapproché.</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+  </section>
+
+  <!-- P -->
+  <section id="d-alertes">
+    <div class="dom-head"><span class="num">P</span><h2>Alertes &amp; notifications</h2></div>
+    <p class="dom-intro">Alertes de stock/péremption/échéances et rappels quotidiens.</p>
+    <div class="mod"><h3>Notifications</h3><p class="moddesc"><b>Ce que fait le module :</b> centre in-app + rappels à l'ouverture.</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="P1"><td class="ref">P1</td><td><div class="obj">Alertes de stock/péremption.</div><ol class="how"><li>Provoquer une rupture ou une péremption proche (produit test).</li><li>Menu « Alertes » → vérifier ; marquer comme résolue.</li></ol></td><td>Alertes générées ; marquables comme lues/résolues.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="P2"><td class="ref">P2</td><td><div class="obj">Rappels quotidiens.</div><ol class="how"><li>Activer les rappels (Paramètres) → recharger l'application.</li></ol></td><td>À l'ouverture : débiteurs + produits périmés à acquitter.</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+  </section>
+
+  <!-- Q -->
+  <section id="d-parametres">
+    <div class="dom-head"><span class="num">Q</span><h2>Paramètres</h2></div>
+    <p class="dom-intro">Identité, fiscalité, impression, modules, mode POS et sauvegardes.</p>
+    <div class="mod"><h3>Réglages &amp; sauvegardes</h3><p class="moddesc"><b>Ce que fait le module :</b> personnalise la pharmacie et sécurise les données.</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="Q1"><td class="ref">Q1</td><td><div class="obj">Identité &amp; fiscalité.</div><ol class="how"><li>Paramètres → « Identité &amp; fiscalité » → modifier nom/logo/TVA/devise/coefficient/préfixes → Enregistrer.</li><li>Vérifier sur un ticket/facture.</li></ol></td><td>Réglages appliqués sur les documents et les calculs.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="Q2"><td class="ref">Q2</td><td><div class="obj">Impression.</div><ol class="how"><li>Paramètres → « Impression » → choisir A4 / ticket 80 mm ; configurer l'imprimante thermique réseau.</li><li>Lancer un test d'impression.</li></ol></td><td>Format appliqué ; test d'impression OK.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="Q3"><td class="ref">Q3</td><td><div class="obj">Modules.</div><ol class="how"><li>Paramètres → « Modules » → activer/désactiver un module (selon formule &amp; add-ons).</li></ol></td><td>Les menus apparaissent/disparaissent en conséquence.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="Q4"><td class="ref">Q4</td><td><div class="obj">Mode POS.</div><ol class="how"><li>Paramètres → « Mode de fonctionnement du POS » → basculer direct ↔ précommande.</li></ol></td><td>Réversible, sans perte de données.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="Q5"><td class="ref">Q5</td><td><div class="obj">Sauvegardes.</div><ol class="how"><li>Paramètres → « Sauvegardes » → régler heure / rétention / dépôt hors-site.</li><li>Lancer une sauvegarde manuelle → consulter le journal.</li></ol></td><td>Sauvegarde créée ; paramètres pris en compte.</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+  </section>
+
+  <!-- R -->
+  <section id="d-abonnement">
+    <div class="dom-head"><span class="num">R</span><h2>Abonnement</h2></div>
+    <p class="dom-intro">Formule, modules inclus et paiement (si l'onglet est visible pour la pharmacie).</p>
+    <div class="mod"><h3>Formule &amp; paiement</h3><p class="moddesc"><b>Ce que fait le module :</b> gestion de l'abonnement de la pharmacie.</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="R1"><td class="ref">R1</td><td><div class="obj">Consulter la formule.</div><ol class="how"><li>Menu « Abonnement » → lire la formule et les modules inclus.</li></ol></td><td>Informations correctes.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="R2"><td class="ref">R2</td><td><div class="obj">Régler l'abonnement.</div><ol class="how"><li>Abonnement → « Payer » (mobile money) si disponible.</li></ol></td><td>Paiement pris en compte ; période prolongée.</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+  </section>
+
+  <!-- S -->
+  <section id="d-plateforme">
+    <div class="dom-head"><span class="num">S</span><h2>Administration plateforme (super-admin)</h2></div>
+    <p class="dom-intro">Réservé à l'éditeur : gestion des pharmacies, formules, facturation, licences on-premise et personnalisation.</p>
+    <div class="mod"><h3>Console éditeur</h3><p class="moddesc"><b>Ce que fait le module :</b> pilotage multi-pharmacies (cross-tenant).</p>
+    <table><thead><tr><th class="c-ref">Réf</th><th>Objectif &amp; comment tester</th><th class="c-exp">Résultat attendu</th><th class="c-verdict">Verdict</th><th class="c-note">Note</th></tr></thead><tbody>
+      <tr data-ref="S1"><td class="ref">S1</td><td><div class="obj">Créer une pharmacie.</div><ol class="how"><li>(Super-admin) Plateforme → « Pharmacies » → « Créer » → renseigner l'administrateur.</li></ol></td><td>Pharmacie provisionnée (rôles, comptabilité, catalogue).</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="S2"><td class="ref">S2</td><td><div class="obj">Formules &amp; tarifs.</div><ol class="how"><li>Plateforme → « Formules » → modifier plans/tarifs/add-ons.</li></ol></td><td>Formules et tarifs modifiables.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="S3"><td class="ref">S3</td><td><div class="obj">Facturation.</div><ol class="how"><li>Plateforme → « Facturation » → consulter abonnements et paiements.</li></ol></td><td>Facturation cohérente.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="S4"><td class="ref">S4</td><td><div class="obj">Licences &amp; installeur on-premise.</div><ol class="how"><li>Plateforme → « Licences on-premise » / « Installeur » → générer.</li></ol></td><td>Licence suivie ; installeur téléchargeable.</td><td class="vcell"></td><td class="ncell"></td></tr>
+      <tr data-ref="S5"><td class="ref">S5</td><td><div class="obj">Personnalisation de la connexion.</div><ol class="how"><li>Plateforme → « Configuration » → page de connexion (marque, image, pied).</li></ol></td><td>Personnalisation visible à la connexion.</td><td class="vcell"></td><td class="ncell"></td></tr>
+    </tbody></table></div>
+  </section>
+
+  <div class="foot">
+    Cahier de recette fonctionnelle — Synapse Pharma. Références SYSCOHADA :
+    <code>411</code> clients · <code>419</code> avoirs clients · <code>701</code> ventes · <code>4431</code> TVA collectée ·
+    <code>401</code> fournisseurs · <code>4098</code> avoirs fournisseurs · <code>601</code> achats · <code>4452</code> TVA récupérable.
+    Saisie enregistrée localement dans le navigateur du testeur. Après modification d'un rôle, l'utilisateur doit se reconnecter.
+  </div>
+</div>
+<button class="btn to-top" onclick="scrollTo(0,0)">↑ Haut</button>
+
+<script>
+(function(){
+  var KEY='recette_synapse_v1';
+  var state={};
+  try{ state=JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ state={}; }
+  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+  var VERDICTS=[['ok','OK'],['ko','KO'],['amel','À améliorer']];
+  var rows=[].slice.call(document.querySelectorAll('tr[data-ref]'));
+  var filter='all';
+  var TKEY='recette_synapse_tester';
+  var tester=''; try{ tester=localStorage.getItem(TKEY)||''; }catch(e){}
+  var tin=document.getElementById('tester');
+  if(tin){ tin.value=tester; tin.addEventListener('input', function(){ tester=tin.value; try{ localStorage.setItem(TKEY, tester); }catch(e){} }); }
+  function today(){ try{ return new Date().toLocaleDateString('fr-FR'); }catch(e){ return ''; } }
+
+  rows.forEach(function(tr){
+    var ref=tr.getAttribute('data-ref');
+    var vcell=tr.querySelector('.vcell');
+    VERDICTS.forEach(function(pair){
+      var b=document.createElement('button');
+      b.type='button'; b.className='vbtn v-'+pair[0]; b.textContent=pair[1];
+      b.addEventListener('click', function(){
+        var cur=state[ref]||{}; cur.v=(cur.v===pair[0]?null:pair[0]);
+        if(cur.v){ cur.d=today(); cur.by=tester; } else { delete cur.d; delete cur.by; }
+        state[ref]=cur; save(); paint();
+      });
+      vcell.appendChild(b);
+    });
+    var stamp=document.createElement('div'); stamp.className='stamp'; vcell.appendChild(stamp);
+    var ncell=tr.querySelector('.ncell');
+    var ta=document.createElement('textarea');
+    ta.className='nta'; ta.rows=1; ta.placeholder='Note…';
+    ta.value=(state[ref]&&state[ref].n)||'';
+    ta.addEventListener('input', function(){ var cur=state[ref]||{}; cur.n=ta.value; state[ref]=cur; save(); });
+    ncell.appendChild(ta);
+  });
+
+  function paint(){
+    var tested=0, ok=0, ko=0, amel=0, total=rows.length;
+    rows.forEach(function(tr){
+      var ref=tr.getAttribute('data-ref');
+      var v=(state[ref]||{}).v;
+      tr.classList.remove('r-ok','r-ko','r-amel');
+      if(v){ tr.classList.add('r-'+v); tested++; if(v==='ok')ok++; else if(v==='ko')ko++; else amel++; }
+      tr.querySelectorAll('.vbtn').forEach(function(b){ b.classList.toggle('active', b.classList.contains('v-'+v)); });
+      var st=tr.querySelector('.stamp'); if(st){ var s=state[ref]||{}; st.textContent = v ? ('✓ '+(s.by||'—')+' · '+(s.d||'')) : ''; }
+      var show=true;
+      if(filter==='todo') show=!v; else if(filter==='ko') show=(v==='ko'); else if(filter==='amel') show=(v==='amel');
+      tr.style.display=show?'':'none';
+    });
+    document.getElementById('prog').innerHTML='<b>'+tested+' / '+total+'</b> testés · <span class="c-ok">'+ok+' OK</span> · <span class="c-ko">'+ko+' KO</span> · <span class="c-amel">'+amel+' à améliorer</span>';
+    document.getElementById('trackfill').style.width=(total? Math.round(tested/total*100):0)+'%';
+  }
+
+  document.getElementById('filters').addEventListener('click', function(e){
+    var b=e.target.closest('button'); if(!b) return;
+    filter=b.getAttribute('data-f');
+    [].slice.call(this.querySelectorAll('button')).forEach(function(x){ x.classList.toggle('active', x===b); });
+    paint();
+  });
+
+  document.getElementById('exp').addEventListener('click', function(){
+    var out=rows.map(function(tr){
+      var ref=tr.getAttribute('data-ref'); var s=state[ref]||{};
+      var objEl=tr.children[1].querySelector('.obj');
+      return { ref:ref, objectif:(objEl?objEl.textContent:tr.children[1].textContent||'').trim(), verdict:s.v||'', teste_par:s.by||'', teste_le:s.d||'', note:s.n||'' };
+    });
+    var payload={ document:'Recette Synapse Pharma', testeur:tester, exporte_le:new Date().toISOString().slice(0,10), resultats:out };
+    var blob=new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+    var a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download='recette-synapse-pharma.json'; document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  });
+  document.getElementById('prt').addEventListener('click', function(){ window.print(); });
+  document.getElementById('rst').addEventListener('click', function(){
+    if(confirm('Effacer toutes les saisies de recette de ce navigateur ?')){ state={}; save(); rows.forEach(function(tr){ var ta=tr.querySelector('.nta'); if(ta) ta.value=''; }); paint(); }
+  });
+
+  paint();
+})();
+</script>
+</body>
+</html>
