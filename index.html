@@ -140,6 +140,8 @@
   btn.addEventListener('click',tryit);
   pw.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();tryit();}});
   setTimeout(function(){pw.focus();},60);
+  var lk=document.getElementById('lock');
+  if(lk)lk.addEventListener('click',function(){try{sessionStorage.removeItem('recette_auth');}catch(e){}location.reload();});
 })();
 </script>
 <div class="bar">
@@ -156,6 +158,7 @@
       <button class="btn" id="exp">Exporter</button>
       <button class="btn" id="prt">Imprimer</button>
       <button class="btn" id="rst">Réinitialiser</button>
+      <button class="btn" id="lock" title="Verrouiller l'accès (redemande le mot de passe)">Verrouiller</button>
     </div>
   </div>
 </div>
