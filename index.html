@@ -140,8 +140,7 @@
   btn.addEventListener('click',tryit);
   pw.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();tryit();}});
   setTimeout(function(){pw.focus();},60);
-  var lk=document.getElementById('lock');
-  if(lk)lk.addEventListener('click',function(){try{sessionStorage.removeItem('recette_auth');}catch(e){}location.reload();});
+  document.addEventListener('click',function(e){var t=e.target;if(t&&t.id==='lock'){try{sessionStorage.removeItem('recette_auth');}catch(e){}location.reload();}});
 })();
 </script>
 <div class="bar">
